@@ -47,7 +47,9 @@ def echo():
 
 @app.route('/print', methods=['POST'])
 def _print():
-    printer.print_jpg('person-face-dataset.jpg')
+    body = request.get_json(silent=True) or request.get_data(as_text=True)
+    printer.print_jpg(body)
+    return {"path": body}
 
 if __name__ == '__main__':
     app.run(port=5000)
