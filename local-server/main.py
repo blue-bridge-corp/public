@@ -3,6 +3,7 @@ from flask_cors import CORS
 import json
 import uuid
 from pkg import printer
+import requests
 
 app = Flask(__name__)
 CORS(app)
@@ -50,6 +51,22 @@ def _print():
     body = request.get_json(silent=True) or request.get_data(as_text=True)
     printer.print_jpg(body)
     return {"path": body}
+
+@app.route("/digicam/", methods=["GET"])
+def digicam_proxy():
+    # Forward query parameters
+    target_url = f"http://127.0.0.1:5513/"
+    if request.query_string:
+        target_url += f"?{request.query_string.decode()}"
+
+    print("Forwarding to:", target_url)   # 👈 this will print in Flask logs
+
+    resp = requests.get(target_url)
+
+    print("Response status:", resp.status_code)
+    print("Response body:", resp.text[:200])  # only print first 200 chars
+
+    return Response(resp.content, resp.status_code, dict(resp.headers))
 
 if __name__ == '__main__':
     app.run(port=5000)
